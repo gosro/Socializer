@@ -1,0 +1,49 @@
+# Пример белого списка контактов.
+# Скопируй в data/contacts.yaml и заполни своими контактами:
+#     mkdir -p data && cp contacts.example.yaml data/contacts.yaml
+#
+# Агент работает ТОЛЬКО с контактами из этого файла. Больше ни с кем.
+#
+# Поля:
+#   telegram             — "@username" или числовой user id ("123456789")
+#   name                 — как зовут (для тебя и для памяти)
+#   mode                 — "draft"  = агент готовит ответ, но НЕ отправляет
+#                          (шлёт тебе в управляющий бот на апрув)
+#                        — "auto"   = агент отвечает сам (только для проверенных!)
+#   relationship         — friend | romantic | colleague | acquaintance
+#   tone                 — каким тоном общаться
+#   goal                 — зачем ты общаешься (агент это учитывает)
+#   notes                — (необязательно) любые заметки о человеке
+#   reengage_after_days  — проактив: написать первым, если диалог затих N дней
+#                          (0 = не писать первым этому контакту)
+#
+# ВАЖНО на старте: поставь ВСЕМ mode: draft. Переводи в auto только тогда,
+# когда убедился, что черновики звучат как ты (стратегия «черновики-first»).
+
+contacts:
+  - telegram: "@example_friend"
+    name: "Дима"
+    mode: "draft"
+    relationship: "friend"
+    tone: "по-братски, с приколами"
+    goal: "не терять контакт"
+    notes: "вместе учились, любит настолки"
+    reengage_after_days: 7
+
+  - telegram: "@example_romantic"
+    name: "Маша"
+    mode: "draft"
+    relationship: "romantic"
+    tone: "тёплый, внимательный, лёгкий флирт"
+    goal: "поддерживать интерес, договориться о встрече"
+    notes: "учится на дизайнера, любит кофейни и инди-музыку"
+    reengage_after_days: 3
+
+  - telegram: "123456789"
+    name: "Коллега Аня"
+    mode: "draft"
+    relationship: "colleague"
+    tone: "дружелюбно, но по делу"
+    goal: "рабочие вопросы, лёгкий small talk"
+    notes: ""
+    reengage_after_days: 0        # с коллегой первым не пишем
