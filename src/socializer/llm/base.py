@@ -20,6 +20,9 @@ def register_provider(name: str, factory: Callable[[Settings], LLMProvider]) -> 
 
 
 def build_provider(settings: Settings) -> LLMProvider:
+    # Import adapters so they self-register (import side effect).
+    from socializer.llm import openai_compatible as _oc  # noqa: F401
+    from socializer.llm import anthropic as _an  # noqa: F401
     name = settings.llm.provider
     if name not in _REGISTRY:
         raise ValueError(f"Unknown LLM provider: {name!r}. Registered: {list(_REGISTRY)}")
