@@ -255,7 +255,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import os
 import yaml
-from dotenv import load_dotenv
+from dotenv import dotenv_values
 
 
 class ConfigError(Exception):
@@ -311,18 +311,25 @@ def _require(env: dict, name: str, missing: list) -> str:
 
 
 def load_settings(config_path: str = "config.yaml", env_path: str = ".env") -> Settings:
-    load_dotenv(env_path)
     with open(config_path, "r", encoding="utf-8") as f:
         cfg = yaml.safe_load(f)
 
+    # Secrets: if a .env file exists it is authoritative (deterministic validation —
+    # a key absent from the file counts as missing even if ambient in the process).
+    # With no .env file, fall back to the process environment (exported-env deployments).
+    if os.path.exists(env_path):
+        env = {k: v for k, v in dotenv_values(env_path).items() if v is not None}
+    else:
+        env = dict(os.environ)
+
     missing: list[str] = []
-    api_id = _require(os.environ, "TELEGRAM_API_ID", missing)
-    api_hash = _require(os.environ, "TELEGRAM_API_HASH", missing)
-    bot_token = _require(os.environ, "CONTROL_BOT_TOKEN", missing)
-    owner = _require(os.environ, "OWNER_USER_ID", missing)
+    api_id = _require(env, "TELEGRAM_API_ID", missing)
+    api_hash = _require(env, "TELEGRAM_API_HASH", missing)
+    bot_token = _require(env, "CONTROL_BOT_TOKEN", missing)
+    owner = _require(env, "OWNER_USER_ID", missing)
 
     llm_cfg = cfg["llm"]
-    api_key = _require(os.environ, llm_cfg["api_key_env"], missing)
+    api_key = _require(env, llm_cfg["api_key_env"], missing)
 
     if missing:
         raise ConfigError(
@@ -3711,3 +3718,5 @@ git commit -m "feat: clock helpers and main.py wiring userbot + control bot + pr
 **Type consistency:** `now()` tuple shape `(today_iso, epoch, hour, iso_ts, rand_hex)` is identical across Orchestrator, ProactiveRunner, DecisionHandler, and `real_now`. `slug()`, `new_request(...)` signature, `send_human(..., sleeper, rng)`, and `ApprovalRequest` fields match every consumer.
 
 **Placeholder scan:** no TBD/TODO in task bodies; every code step shows full code. The two deferred items above are explicitly scoped as post-MVP follow-ups, not silent gaps.
+
+**Implementation deviation (recorded during execution):** Task 2's loader was changed from `load_dotenv` to `dotenv_values`. Reason: `load_dotenv` writes into `os.environ`, so an ambient/leftover variable masks one missing from `.env` (the `test_missing_secret_raises_with_name` test caught this as a real leak between tests). The shipped loader reads the `.env` file authoritatively when it exists, falling back to `os.environ` only when no file is present. Code above reflects the shipped version.
