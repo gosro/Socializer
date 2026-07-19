@@ -1,0 +1,24 @@
+llm:
+  provider: openai_compatible        # openai_compatible | anthropic
+  base_url: "https://openrouter.ai/api/v1"
+  model: "deepseek/deepseek-chat"
+  api_key_env: OPENROUTER_API_KEY    # which env var holds the key
+
+limits:
+  max_messages_per_day: 40
+  max_per_contact_per_day: 15
+  max_new_contacts_per_day: 3
+  warmup_days: 7                     # first N days: halve the caps
+
+timing:
+  min_read_delay_seconds: 30
+  max_read_delay_seconds: 900        # 15 min
+  typing_seconds_per_10_chars: 1.0
+  long_delay_probability: 0.10       # 10% of replies wait longer
+  long_delay_min_seconds: 3600
+  long_delay_max_seconds: 10800      # 3 h
+  night_start_hour: 0                # local-time sleep window [start, end)
+  night_end_hour: 8
+
+paths:
+  data_dir: "data"
